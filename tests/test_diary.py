@@ -1,55 +1,64 @@
-import pytest
-from lib.diary_entry import *  
+from lib.diary import Diary
+from lib.diary_entry import DiaryEntry  
 
-def test_count_words_counts_title_and_contents():
-    entry = DiaryEntry("Hello World", "This is a test diary entry.")
-    assert entry.count_words() == 8 # "Hello World" = 2 words, contents = 6 words, total = 8
+def test_find_best_entry_exact_fit():
+    diary = Diary()
+    # Adjusted to account for title words: "Medium" (1) + content (5) = 6 total
+    entry1 = DiaryEntry("Short", "two three")  # 1 + 2 = 3 words
+    entry2 = DiaryEntry("Medium", "two three four five six")  # 1 + 5 = 6 words  
+    entry3 = DiaryEntry("Long", "two three four five six seven eight nine")  # 1 + 8 = 9 words
 
-def test_reading_time_rounded_up():
-    entry = DiaryEntry("Hello", "word " * 9)  # 1 word title + 9 words = 10 words total
-    assert entry.reading_time(3) == 4 # Reading speed = 3 wpm, so 10/3 = 3.333.. minutes, rounded up to 4
+    diary.add(entry1)
+    diary.add(entry2)
+    diary.add(entry3)
 
-def test_reading_chunk_returns_correct_chunk_and_advances():
-    content = "one two three four five six seven eight nine ten"
-    entry = DiaryEntry("Title", content)  # 1 word title + 10 words contents = 11 words total
+    # wpm = 2, minutes = 3 => max_words = 6
+    result = diary.find_best_entry_for_reading_time(wpm=2, minutes=3)
 
-    # Read 4 words at 2 wpm for 2 minutes: 2*2=4 words per chunk
-    chunk1 = entry.reading_chunk(2, 2)
-    expected_chunk1 = "Title one two three"  # first 4 words including title
-    assert chunk1 == expected_chunk1
+    assert result == entry2
+    assert result.title == "Medium"
 
-    # Next chunk should start where previous ended, next 4 words
-    chunk2 = entry.reading_chunk(2, 2)
-    expected_chunk2 = "four five six seven"
-    assert chunk2 == expected_chunk2
+def test_find_best_entry_under_limit():
+    diary = Diary()
+    entry1 = DiaryEntry("Tiny", "two")  # 1 + 1 = 2 words
+    entry2 = DiaryEntry("Smaller", "")  # 1 + 0 = 1 word
+    
+    diary.add(entry1)
+    diary.add(entry2)
 
-    # Next chunk 4 words again, only 3 left so it returns those
-    chunk3 = entry.reading_chunk(2, 2)
-    expected_chunk3 = "eight nine ten"
-    assert chunk3 == expected_chunk3
+    # wpm = 1, minutes = 3 => max_words = 3
+    result = diary.find_best_entry_for_reading_time(wpm=1, minutes=3)
 
-    # Next chunk resets to beginning
-    chunk4 = entry.reading_chunk(2, 2)
-    assert chunk4 == expected_chunk1
+    assert result == entry1
+    assert result.title == "Tiny"
 
-def test_reading_chunk_handles_zero_words_read_so_far():
-    entry = DiaryEntry("Test", "")
-    # Read with zero words in contents and title has one word "Test"
-    chunk = entry.reading_chunk(1, 1)
-    assert chunk == "Test"
+def test_find_best_entry_none_fit():
+    diary = Diary()
+    entry1 = DiaryEntry("Too", "long one two three four")  # 1 + 5 = 6 words
+    diary.add(entry1)
 
-def test_reading_chunk_resets_after_all_words_read():
-    entry = DiaryEntry("a b c", "d e f")
-    total_words = entry.count_words()
-    wpm = 2
-    minutes = 1
-    # Read chunks until all words are read
-    read_words = 0
-    while read_words < total_words:
-        chunk = entry.reading_chunk(wpm, minutes)
-        read_words += len(chunk.split())
+    # wpm = 1, minutes = 2 => max_words = 2
+    result = diary.find_best_entry_for_reading_time(wpm=1, minutes=2)
 
-    # After reading all words, next chunk should reset to start
-    first_chunk = entry.reading_chunk(wpm, minutes)
-    expected_first_chunk = "a b"
-    assert first_chunk == expected_first_chunk
+    assert result is None
+
+def test_find_best_entry_with_multiple_equal_entries():
+    diary = Diary()
+    entry1 = DiaryEntry("Entry1", "two three")  # 1 + 2 = 3 words
+    entry2 = DiaryEntry("Entry2", "five six")   # 1 + 2 = 3 words
+
+    diary.add(entry1)
+    diary.add(entry2)
+
+    # Both entries have 3 words, which fits max_words
+    result = diary.find_best_entry_for_reading_time(wpm=1, minutes=3)
+
+    # Should return the first one it encounters
+    assert result == entry1
+
+def test_find_best_entry_no_entries():
+    diary = Diary()
+
+    result = diary.find_best_entry_for_reading_time(wpm=10, minutes=1)
+
+    assert result is None

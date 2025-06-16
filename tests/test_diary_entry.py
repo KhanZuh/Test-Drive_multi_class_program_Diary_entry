@@ -1,4 +1,3 @@
-import pytest
 from lib.diary_entry import DiaryEntry
 
 def test_count_words_counts_title_and_contents():

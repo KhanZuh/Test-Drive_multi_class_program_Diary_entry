@@ -28,3 +28,5 @@ class DiaryEntry:
         self.words_read_so_far += len(chunk) # Update the position to mark these words as read for next time
 
         return " ".join(chunk) # Join the chunk list back into a string and return it
+
+
