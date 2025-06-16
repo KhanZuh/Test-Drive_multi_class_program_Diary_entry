@@ -1,0 +1,121 @@
+Integration Test Examples for Diary System
+
+1. Add multiple DiaryEntry objects to Diary, call all(), expect to retrieve them all in the order added.
+    
+    def test_add_and_retrieve_entries():
+        diary = Diary()
+        entry1 = DiaryEntry("Day 1", "I went for a walk")
+        entry2 = DiaryEntry("Day 2", "It rained all day")
+
+        diary.add(entry1)
+        diary.add(entry2)
+
+        # Should return a list of entries in the order added
+        assert diary.all() == [entry1, entry2]
+
+Create DiaryEntry objects, add them to Diary, then retrieve them.
+Testing that Diary correctly stores and returns multiple DiaryEntry objects in order
+This involves interaction between Diary and DiaryEntry.
+
+
+2. Add DiaryEntry objects with varying lengths of content.
+   Call Diary.count_words() and expect the total word count across all entries.
+
+   def test_count_words_across_entries():
+    diary = Diary()
+    entry1 = DiaryEntry("Hello", "One two three")
+    entry2 = DiaryEntry("World", "Four five")
+
+    diary.add(entry1)
+    diary.add(entry2)
+
+    # Entry1: title=1 word, contents=3 words -> 4 words total
+    # Entry2: title=1 word, contents=2 words -> 3 words total
+    # Total should be 4 + 3 = 7 words
+    assert diary.count_words() == 7
+
+    # We verify that total words is sum of title+content words across all entries.
+
+Add DiaryEntry objects with different content lengths.
+Then call Diary.count_words(), which must aggregate the word counts from each DiaryEntry.
+This tests the integration of Diary’s aggregation logic with DiaryEntry’s word counting.
+
+
+
+3. Given DiaryEntry objects with known word counts,
+   call Diary.reading_time(wpm) and expect the reading time to be the sum of individual reading times.
+
+   def test_reading_time_calculation():
+    diary = Diary()
+    entry1 = DiaryEntry("Hi", "One two three four")
+    entry2 = DiaryEntry("Bye", "Five six")
+
+    diary.add(entry1)
+    diary.add(entry2)
+
+    wpm = 2  # words per minute
+
+    # Entry1: 1 + 4 = 5 words, reading time = ceil(5 / 2) = 3 minutes
+    # Entry2: 1 + 2 = 3 words, reading time = ceil(3 / 2) = 2 minutes
+    # Total reading time = 3 + 2 = 5 minutes
+
+    assert diary.reading_time(wpm) == 5
+
+    # Calculate expected reading times for each entry separately.
+    # Assert that Diary sums these properly.  
+
+Add DiaryEntry objects and test Diary.reading_time(wpm).
+The method relies on the word count of each DiaryEntry and calculates reading time for each.
+This tests the interaction between Diary’s reading time calculation and individual DiaryEntry word counts.
+
+
+4. Given several DiaryEntry objects of varying lengths,
+   call Diary.find_best_entry_for_reading_time(wpm, minutes)
+   and expect the DiaryEntry returned to be the longest readable entry without exceeding time.
+
+   def test_find_best_entry_for_reading_time():
+    diary = Diary()
+    entry1 = DiaryEntry("Short", "One two")  # 3 words
+    entry2 = DiaryEntry("Medium", "One two three four five")  # 6 words
+    entry3 = DiaryEntry("Long", "One two three four five six seven eight")  # 9 words
+
+    diary.add(entry1)
+    diary.add(entry2)
+    diary.add(entry3)
+
+    wpm = 2
+    minutes = 2
+
+    # Max words readable = 2 * 2 = 4 words
+
+    # Entries word counts:
+    # entry1 = 3 words -> fits
+    # entry2 = 6 words -> too long
+    # entry3 = 9 words -> too long
+
+    # Expect entry1 as best fit (longest that fits within 4 words)
+    best_entry = diary.find_best_entry_for_reading_time(wpm, minutes)
+    assert best_entry == entry1
+
+Test Diary’s method for selecting the best DiaryEntry based on reading constraints.
+This involves Diary iterating over multiple DiaryEntry objects, calculating their word counts and reading times, and returning the best match.
+This is integration of Diary’s selection logic with DiaryEntry’s data.
+
+
+5. When Diary has no entries,
+   methods like count_words, reading_time, find_best_entry_for_reading_time
+   should behave gracefully (e.g., return 0 or None as appropriate).
+
+   def test_methods_with_no_entries():
+    diary = Diary()
+
+    assert diary.count_words() == 0
+    assert diary.reading_time(5) == 0
+    assert diary.find_best_entry_for_reading_time(5, 5) is None
+
+Test how Diary behaves when empty.
+It verifies that Diary methods handle empty states gracefully without breaking.
+This also checks integration between Diary and the fact that there are no DiaryEntry objects present.
+
+
+
