@@ -42,7 +42,7 @@ Run tests to verify setup: pytest
 
 ## License
 This project is open source and available under the MIT License.
-RetryClaude does not have the ability to run the code it generates yet.Claude can make mistakes. Please double-check responses.
+
 
 ## Usage Example
 
